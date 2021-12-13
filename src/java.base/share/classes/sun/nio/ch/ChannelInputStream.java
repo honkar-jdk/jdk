@@ -287,23 +287,13 @@ public class ChannelInputStream
     private static long transfer(ReadableByteChannel src, FileChannel dst) throws IOException {
         long initialPos = dst.position();
         long pos = initialPos;
-        ByteBuffer bb = Util.getTemporaryDirectBuffer(DEFAULT_BUFFER_SIZE);
         try {
-            for (int bytesRead = 0; bytesRead > -1;) {
-                pos += dst.transferFrom(src, pos, Long.MAX_VALUE);
-                bytesRead = src.read(bb); // detect end-of-stream
-                if (bytesRead > -1) {
-                    bb.flip();
-                    while (bb.hasRemaining()) {
-                        dst.write(bb);
-                    }
-                    bb.clear();
-                    pos += bytesRead;
-                }
-            };
+            long n;
+            while ((n = dst.transferFrom(src, pos, Long.MAX_VALUE)) > 0) {
+                pos += n;
+            }
         } finally {
             dst.position(pos);
-            Util.releaseTemporaryDirectBuffer(bb);
         }
         return pos - initialPos;
     }
