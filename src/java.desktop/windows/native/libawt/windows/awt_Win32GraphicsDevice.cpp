@@ -39,6 +39,8 @@
 
 #include <awt.h>
 #include <sun_awt_Win32GraphicsDevice.h>
+#include <cstdio>
+
 #include "awt_Canvas.h"
 #include "awt_Win32GraphicsDevice.h"
 #include "awt_Window.h"
