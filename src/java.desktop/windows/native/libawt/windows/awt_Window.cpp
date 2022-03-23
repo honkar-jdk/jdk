@@ -1795,12 +1795,29 @@ MsgRouting AwtWindow::WmShowWindow(BOOL show, UINT status)
 }
 
 void AwtWindow::WmDPIChanged(const LPARAM &lParam) {
+
+     jmethodID updateTrayFn;
+     jclass systemTrayClass;
+
     // need to update the scales now, otherwise the ReshapeNoScale() will
     // calculate the bounds wrongly
     AwtWin32GraphicsDevice::ResetAllDesktopScales();
     RECT *r = (RECT *) lParam;
     ReshapeNoScale(r->left, r->top, r->right - r->left, r->bottom - r->top);
     CheckIfOnNewScreen(true);
+
+    // JDK-8255439 changes: call to SystemTray's updateTrayIcons() after DPI changes
+   JNIEnv *env =(JNIEnv *)JNU_GetEnv(jvm, JNI_VERSION_1_2);
+   systemTrayClass = env->FindClass("java/awt/SystemTray");
+   if (systemTrayClass != NULL) {
+        updateTrayFn = env->GetStaticMethodID(
+                    systemTrayClass, "updateTrayIcons", "()V");
+        if (updateTrayFn != NULL) {
+            env->CallStaticVoidMethod(systemTrayClass,
+                     updateTrayFn);
+        }
+        env->DeleteLocalRef(systemTrayClass);
+   }
 }
 
 /*

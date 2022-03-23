@@ -179,10 +179,14 @@ public class Win32GraphicsConfig extends GraphicsConfiguration
      * increasing to the right and Y coordinates increasing downwards.
      * For image buffers, this Transform will be the Identity transform.
      */
+    // JDK-8255439 changes : switch between native and default scales
+    // to see the difference of AffineTransform on TrayIcon
     @Override
     public AffineTransform getDefaultTransform() {
         double scaleX = device.getDefaultScaleX();
         double scaleY = device.getDefaultScaleY();
+//        double scaleX = device.getNativeScaleX(0);
+//        double scaleY = device.getNativeScaleY(0);
         return AffineTransform.getScaleInstance(scaleX, scaleY);
     }
 

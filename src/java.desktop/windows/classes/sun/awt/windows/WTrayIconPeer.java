@@ -121,7 +121,12 @@ final class WTrayIconPeer extends WObjectPeer implements TrayIconPeer {
     // ***********************************************
 
 
+    // JDK-8255439 changes: added sysout statements
     synchronized void updateNativeImage(Image image) {
+
+        System.out.println("CURRENT THREAD: "+ Thread.currentThread().getName());
+        System.out.println("Is EDT? "+ SwingUtilities.isEventDispatchThread());
+
         if (isDisposed())
             return;
 
@@ -129,6 +134,8 @@ final class WTrayIconPeer extends WObjectPeer implements TrayIconPeer {
         AffineTransform tx = GraphicsEnvironment.getLocalGraphicsEnvironment().
                 getDefaultScreenDevice().getDefaultConfiguration().
                 getDefaultTransform();
+        System.out.println("SCALE (Java side - WTrayIconPeer): "+ tx.getScaleX());
+        //System.out.println("firstUpdate Value: "+ firstUpdate);
         int w = Region.clipScale(TRAY_ICON_WIDTH, tx.getScaleX());
         int h = Region.clipScale(TRAY_ICON_HEIGHT, tx.getScaleY());
         int imgWidth = Region.clipScale(image.getWidth(observer), tx.getScaleX());
@@ -141,19 +148,19 @@ final class WTrayIconPeer extends WObjectPeer implements TrayIconPeer {
                 gr.setPaintMode();
 
                 gr.drawImage(image, 0, 0, (autosize ? w : imgWidth),
-                             (autosize ? h : imgHeight), observer);
-
+                        (autosize ? h : imgHeight), observer);
                 createNativeImage(bufImage);
-
+                //Thread.sleep(5000);
                 updateNativeIcon(!firstUpdate);
                 if (firstUpdate) firstUpdate = false;
 
-            } finally {
+            }  finally {
                 gr.dispose();
             }
         }
     }
 
+    // JDK-8255439 changes: added sysout statements
     void createNativeImage(BufferedImage bimage) {
         Raster raster = bimage.getRaster();
         byte[] andMask = new byte[TRAY_ICON_MASK_SIZE];
@@ -172,12 +179,19 @@ final class WTrayIconPeer extends WObjectPeer implements TrayIconPeer {
                 }
             }
         }
-
         if (raster instanceof IntegerComponentRaster) {
             ficW = ((IntegerComponentRaster)raster).getScanlineStride();
         }
+
+        System.out.println("No. of Pixels: "+ npixels);
+        System.out.println("Width: "+ raster.getWidth());
+        System.out.println("Height: "+ raster.getHeight());
+        System.out.println("ficW: "+ ficW);
+        System.out.println("------------------------------------");
+
+
         setNativeIcon(((DataBufferInt)bimage.getRaster().getDataBuffer()).getData(),
-                      andMask, ficW, raster.getWidth(), raster.getHeight());
+                andMask, ficW, raster.getWidth(), raster.getHeight());
     }
 
     void postEvent(AWTEvent event) {

@@ -37,6 +37,8 @@ import sun.awt.AppContext;
 import sun.awt.HeadlessToolkit;
 import sun.awt.SunToolkit;
 
+import javax.swing.*;
+
 /**
  * The {@code SystemTray} class represents the system tray for a
  * desktop.  On Microsoft Windows it is referred to as the "Taskbar
@@ -283,6 +285,30 @@ public class SystemTray {
             throw e;
         }
         firePropertyChange("trayIcons", oldArray, newArray);
+    }
+
+    // JDK-8255439 changes: added updateTrayIcons method called by native
+    // code when DPI changes
+    static void updateTrayIcons() {
+        SwingUtilities.invokeLater(()->{
+            TrayIcon[] trayIconList = null;
+            trayIconList = systemTray.getTrayIcons();
+
+            if (trayIconList == null || trayIconList.length == 0) {
+                // no tray icons present so do nothing
+                System.out.println("TrayIcon List Empty");
+                return;
+            }
+            System.out.println("Tray icon list length:" + trayIconList.length);
+            for (TrayIcon trayIcon: trayIconList) {
+                try {
+                    trayIcon.updateNotify();
+                } catch (Exception e) {
+                    //Error while updating the tray icon
+                    throw e;
+                }
+            }
+        });
     }
 
     /**
