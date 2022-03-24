@@ -39,6 +39,7 @@
 
 #include <awt.h>
 #include <sun_awt_Win32GraphicsDevice.h>
+#include <cstdio>
 #include "awt_Canvas.h"
 #include "awt_Win32GraphicsDevice.h"
 #include "awt_Window.h"
@@ -688,7 +689,7 @@ int AwtWin32GraphicsDevice::ClipRound(double value)
 
     return (int)ceil(value);
 }
-
+//JDK-8255439 changes: added sysout statement to verify scale
 void AwtWin32GraphicsDevice::InitDesktopScales()
 {
     if (!disableScaleAutoRefresh) {
@@ -699,6 +700,8 @@ void AwtWin32GraphicsDevice::InitDesktopScales()
             SetScale(dpiX / 96, dpiY / 96);
         }
     }
+    printf("C++ Scale X: %f \n", GetScaleX());
+    printf("C++ Scale Y: %f \n", GetScaleY());
 }
 
 float AwtWin32GraphicsDevice::GetScaleX()
