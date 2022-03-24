@@ -707,7 +707,16 @@ public class TrayIcon {
         }
         peer.setToolTip(tooltip);
     }
-
+    // JDK-8255439 changes: added updateNotify method
+    void updateNotify() {
+        TrayIconPeer peer = this.peer;
+        if (peer != null) {
+            peer.updateImage();
+        }
+        else {
+            System.out.println("peer is null");
+        }
+    }
     void removeNotify() {
         TrayIconPeer p = null;
         synchronized (this) {
