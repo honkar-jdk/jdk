@@ -29,6 +29,7 @@ import java.awt.event.ActionListener;
 import java.awt.peer.SystemTrayPeer;
 import java.beans.PropertyChangeListener;
 import java.beans.PropertyChangeSupport;
+import java.util.Arrays;
 import java.util.Vector;
 
 import sun.awt.AWTAccessor;
@@ -287,8 +288,8 @@ public class SystemTray {
         firePropertyChange("trayIcons", oldArray, newArray);
     }
 
-    // JDK-8255439 changes: added updateTrayIcons method called by native
-    // code when DPI changes
+    // updateTrayIcons method called from native side
+    // when WM_POSCHANGING msg received
     static void updateTrayIcons() {
         SwingUtilities.invokeLater(()->{
             TrayIcon[] trayIconList = null;
@@ -296,17 +297,10 @@ public class SystemTray {
 
             if (trayIconList == null || trayIconList.length == 0) {
                 // no tray icons present so do nothing
-                System.out.println("TrayIcon List Empty");
                 return;
             }
-            System.out.println("Tray icon list length:" + trayIconList.length);
             for (TrayIcon trayIcon: trayIconList) {
-                try {
-                    trayIcon.updateNotify();
-                } catch (Exception e) {
-                    //Error while updating the tray icon
-                    throw e;
-                }
+                trayIcon.updateNotify();
             }
         });
     }

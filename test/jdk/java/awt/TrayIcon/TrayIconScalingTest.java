@@ -21,75 +21,74 @@
  * questions.
  */
 
-import javax.swing.*;
-import java.awt.*;
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.font.TextLayout;
-import java.awt.image.BaseMultiResolutionImage;
-import java.awt.image.BufferedImage;
-import java.awt.image.MultiResolutionImage;
-import java.util.ArrayList;
-import java.util.stream.IntStream;
-
 /*
  * @test
  * @bug 8255439
  * @key headful
- * @summary
+ * @library /java/awt/regtesthelpers
+ * @build PassFailJFrame
+ * @summary To test tray icon scaling with on-the-fly DPI/Scale changes on Windows
  * @run main TrayIconScalingTest
+ * @requires (os.family=="windows")
  */
+
+import java.awt.*;
+import java.awt.font.TextLayout;
+import java.awt.image.BaseMultiResolutionImage;
+import java.awt.image.BufferedImage;
+import java.awt.image.MultiResolutionImage;
+import java.lang.reflect.InvocationTargetException;
+import java.util.ArrayList;
 
 public class TrayIconScalingTest {
 
-    public static void main(String[] args) throws Exception {
-        SwingUtilities.invokeAndWait(()->{
-            createAndShowGUI();
-        });
+    private static final String INSTRUCTIONS =
+            "This test case checks the scaling of tray icons for\non-the-fly DPI/Scale changes on Windows\n\n" +
+                    "STEPS: \n\n" +
+                    "1. When you run this test check the system tray area on windows," +
+                    " a white multi-resolution image (MRI) icon should be visible.\n\n"+
+                    "2. Navigate to Settings > System > Display and change the" +
+                    " display scale by selecting any value from Scale & Layout\ndropdown\n\n"+
+                    "3. On scale changes observe the white tray icon, if there is NO distortion then press PASS\n\n";
+
+
+    public static void main(String[] args) throws InterruptedException,
+            InvocationTargetException {
+        PassFailJFrame passFailJFrame = new PassFailJFrame("TrayIcon " +
+                "Test Instructions", INSTRUCTIONS, 5, 19, 35);
+        createAndShowGUI();
+        passFailJFrame.awaitAndCheck();
     }
 
     private static void createAndShowGUI() {
-//        System.setProperty("sun.java2d.uiScale", "1.75");
-//        System.out.println(System.getProperty("sun.java2d.uiScale"));
 
-        //Check to see if  SystemTray supported on the machine
+        // Check if SystemTray supported on the machine
         if (!SystemTray.isSupported()) {
             System.out.println("SystemTray is not supported");
             return;
         }
-        //System.out.println(getScaleFactor());
-        SystemTray tray = SystemTray.getSystemTray();
-        Dimension dim = tray.getTrayIconSize();
 
+        // Create Multi Resolution Image
         ArrayList<Image> images = new ArrayList<>();
-
-        for (int size = 16; size <= 32; size++) {
+        for (int size = 16; size <= 34; size++) {
             createIcon(size, images);
         }
-
         MultiResolutionImage multiResolutionImage =
                 new BaseMultiResolutionImage(images.toArray(new Image[0]));
 
-//        BufferedImage image = new BufferedImage(20, 20, BufferedImage.TYPE_INT_ARGB);
-//        Graphics2D g = image.createGraphics();
-//        //g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);
-//        g.setColor(Color.WHITE);
-//        g.fillRect(0, 0, 20, 20);
-//        g.dispose();
-
+        SystemTray tray = SystemTray.getSystemTray();
         TrayIcon icon = new TrayIcon((Image) multiResolutionImage);
+
         PopupMenu popup = new PopupMenu();
         MenuItem exitItem = new MenuItem("Exit");
         popup.add(exitItem);
-
         icon.setPopupMenu(popup);
+
         try {
             tray.add(icon);
         } catch (AWTException e) {
             throw new RuntimeException("Error while adding icon to system tray");
         }
-        //System.out.println("Dimension from system tray:"+ dim.toString());
-        //System.out.println("Icon Size:"+ icon.getSize().toString());
 
         exitItem.addActionListener(e -> {
             tray.remove(icon);
@@ -97,7 +96,10 @@ public class TrayIconScalingTest {
         });
 
     }
+
+    // to create different size icon for MRI
     private static void createIcon(int size, ArrayList<Image> imageArrayList) {
+
         BufferedImage image = new BufferedImage(size, size, BufferedImage.TYPE_INT_ARGB);
         Graphics2D g = image.createGraphics();
         g.setRenderingHint(RenderingHints.KEY_TEXT_ANTIALIASING, RenderingHints.VALUE_TEXT_ANTIALIAS_ON);

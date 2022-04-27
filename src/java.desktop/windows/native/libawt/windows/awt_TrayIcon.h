@@ -104,6 +104,7 @@ public:
     static LRESULT CALLBACK TrayWindowProc(HWND hWnd, UINT uMsg, WPARAM wParam, LPARAM lParam);
 
     static AwtTrayIcon* Create(jobject self, jobject parent);
+    static void updateTrayIconHandler();
 
     static HWND CreateMessageWindow();
     static void DestroyMessageWindow();
